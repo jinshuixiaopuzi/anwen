@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安稳 | AI 编导 - 影视飓风定向简历</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans:['"PingFang SC"', '"Helvetica Neue"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                        serif:['"Noto Serif SC"', 'serif'],
+                    },
+                    colors: {
+                        morandi: {
+                            bg: '#F2EFE9',       /* 宣纸底色优化，更显高级 */
+                            text: '#1C1E1D',     /* 极深墨绿灰，增加对比度 */
+                            subtext: '#505552',  /* 次要文字 */
+                            light: '#8A908D',    /* 辅助线/备注 */
+                            green: '#8EA699',    /* 灰绿 */
+                            greenD: '#5C7A6A',   /* 深灰绿 */
+                            orange: '#D49D84',   /* 陶土橘 */
+                            orangeD: '#B86F52',  /* 深陶土橘 */
+                            purple: '#A899AB',   /* 烟灰紫 */
+                            dark: '#0A0A0A',     /* 影院级纯黑 */
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'gentleFloat 8s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        gentleFloat: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #F2EFE9; color: #1C1E1D; overflow-x: hidden; margin: 0; scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1C1E1D; border-radius: 4px; }
+
+        /* ====== 1. 莫兰迪山丘氛围背景 ====== */
+        .color-hills { position: fixed; inset: 0; z-index: -2; pointer-events: none; overflow: hidden; }
+        .hill { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.85; animation: floatHill 12s infinite alternate ease-in-out; will-change: transform; }
+        .hill-green { top: -10vh; left: -10vw; width: 65vw; height: 60vh; background: #8EA699; animation-delay: 0s; }
+        .hill-orange { bottom: -15vh; right: -5vw; width: 60vw; height: 55vh; background: #D49D84; animation-delay: -4s; }
+        .hill-purple { top: 25vh; left: 15vw; width: 55vw; height: 50vh; background: #A899AB; filter: blur(110px); animation-delay: -8s; opacity: 0.6; }
+
+        @keyframes floatHill {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, -30px) scale(1.08); }
+        }
+
+        /* ====== 2. 交互画布 ====== */
+        #global-bg-canvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+        #waterfall-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; border-radius: 24px; }
+
+        /* ====== 3. 导航栏 (Header) ====== */
+        .glass-nav {
+            background: rgba(242, 239, 233, 0.7);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+        }
+
+        /* ====== 4. A4 纸高端主容器 ====== */
+        .a4-paper {
+            width: 100%; max-width: 980px; min-height: 120vh; margin: 120px auto 60px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border-radius: 24px; position: relative;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(255,255,255,0.9);
+        }
+        .a4-content { position: relative; z-index: 10; pointer-events: none; }
+        .a4-content * { pointer-events: auto; }
+
+        /* ====== 5. 卡片系统 ====== */
+        .bento-card {
+            background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(255, 255, 255, 1);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.02); border-radius: 20px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; overflow: hidden; position: relative;
+        }
+        .bento-card::after { content: 'READ MORE ↗'; position: absolute; bottom: 20px; right: 24px; font-family: 'Fira Code', monospace; font-size: 10px; opacity: 0; transform: translateY(10px); transition: all 0.4s ease; color: #1C1E1D; font-weight: bold; }
+        .bento-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px rgba(0,0,0,0.06); background: #FFFFFF; }
+        .bento-card:hover::after { opacity: 1; transform: translateY(0); }
+
+        /* ====== 6. 视频/弹窗通用交互 ====== */
+        .work-cover { width: 100%; height: 100%; object-fit: cover; filter: grayscale(40%) contrast(1.1); transition: all 0.7s ease; }
+        .bento-card:hover .work-cover { filter: grayscale(0%) contrast(1); transform: scale(1.05); }
+        .play-btn { background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); transition: all 0.4s; }
+        .bento-card:hover .play-btn { background: #FFFFFF; transform: scale(1.15); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        
+        /* 隐藏滚动条但保留滚动 */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="selection:bg-morandi-orange selection:text-white">
+
+    <!-- 莫兰迪光影背景 -->
+    <div class="color-hills">
+        <div class="hill hill-green"></div>
+        <div class="hill hill-orange"></div>
+        <div class="hill hill-purple"></div>
+    </div>
+
+    <!-- 全局交互画布 -->
+    <canvas id="global-bg-canvas"></canvas>
+
+    <!-- ====== 导航栏 ====== -->
+    <header class="glass-nav fixed top-0 left-0 w-full z-40 transition-all duration-300">
+        <div class="max-w-[1040px] mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="font-serif font-bold text-xl tracking-widest text-morandi-text cursor-pointer">AN WEN.</div>
+            <nav class="hidden md:flex space-x-10 font-mono text-[11px] tracking-widest text-morandi-subtext font-bold">
+                <a href="#about" class="hover:text-morandi-orangeD transition-colors">01. ABOUT</a>
+                <a href="#skills" class="hover:text-morandi-greenD transition-colors">02. SKILLS</a>
+                <a href="#works" class="hover:text-morandi-text transition-colors">03. WORKS</a>
+            </nav>
+            <a href="mailto:anwenvideo@gmail.com?subject=杭州亲启棠教育科技有限公司面试邀约 - 安稳 (AI编导)" class="px-5 py-2 rounded-full bg-morandi-text text-[11px] font-mono text-white hover:bg-morandi-orangeD transition-all shadow-lg hover:shadow-xl">
+                GET IN TOUCH
+            </a>
+        </div>
+    </header>
+
+    <!-- ====== 悬浮 A4 主干 ====== -->
+    <main class="a4-paper animate-float" id="about">
+        <!-- 内部解密流 -->
+        <canvas id="waterfall-canvas"></canvas>
+
+        <div class="a4-content p-10 md:p-20 flex flex-col">
+            
+                            <!-- ====== 头部简介 (终极杂志/仪表盘排版) ====== -->
+            <header class="mb-20 pb-12 border-b border-black/5 relative flex flex-col md:flex-row gap-10 items-stretch">
+                
+                <!-- 左侧：个人照片 (略微放大比例，强制裁剪底部椅背) -->
+                <div class="w-36 h-48 sm:w-44 sm:h-[240px] shrink-0 rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.08)] border-[4px] border-white relative group bg-morandi-text flex items-center justify-center">
+                    <!-- 隐藏彩蛋 -->
+                    <div class="absolute inset-0 flex flex-col items-center justify-center z-0 text-white">
+                        <span class="font-serif font-bold tracking-[0.2em] text-sm transform scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-500 text-morandi-orangeD">无限进步</span>
+                        <span class="font-mono text-[8px] tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100 text-white/50">MEDIASTORM</span>
+                    </div>
+                    <!-- 加上了 scale-110 稍微放大图片，完美把底部的椅子挤出画幅外 -->
+                    <img src="https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/%E4%B8%AA%E4%BA%BA%E8%82%96%E5%83%8F-.png" alt="安稳" class="w-full h-full object-cover object-[center_10%] scale-110 relative z-10 transition-all duration-500 group-hover:opacity-0 group-hover:scale-125">
+                </div>
+                
+                <!-- 右侧：文字信息与联系模块 -->
+                <div class="flex flex-col flex-1 justify-between py-1">
+                    
+                    <!-- 上半部：名字与定向印章处于同一水平线，彻底平衡视觉 -->
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start border-b border-black/5 pb-5 mb-5">
+                        <div>
+                            <h1 class="text-5xl sm:text-6xl font-serif font-bold text-morandi-text tracking-tight mb-2">安 稳</h1>
+                            <p class="font-mono text-[11px] sm:text-xs tracking-[0.2em] text-morandi-light uppercase mt-3">
+                                AI 编导 <span class="mx-2 opacity-30 text-morandi-text font-sans">|</span> Creative Developer
+                            </p>
+                        </div>
+                        
+                        <!-- 完美融入的定向印章：不再飘在远处，而是紧挨着标题 -->
+                        <div class="mt-6 sm:mt-0 text-left sm:text-right group cursor-default">
+                            <div class="flex items-center space-x-2 sm:justify-end mb-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-morandi-orangeD animate-pulse"></span>
+                                <p class="text-[9px] font-mono tracking-[0.2em] text-morandi-light uppercase">Target</p>
+                            </div>
+                            <p class="text-lg font-bold tracking-widest text-morandi-text font-serif group-hover:text-morandi-orangeD transition-colors">杭州亲启棠教育科技有限公司</p>
+                            <p class="text-[10px] font-mono tracking-[0.2em] text-morandi-subtext uppercase mt-0.5">Mediastorm</p>
+                        </div>
+                    </div>
+
+                    <!-- 中部：极致精简的个人简介，严控换行，句句扎实 -->
+                    <div class="text-[14px] leading-[2.2] text-morandi-text/80 font-medium max-w-[580px] mb-8 space-y-1">
+                        <p>兼具<strong class="text-morandi-orangeD font-bold">高级导演视听审美</strong>与<strong class="text-morandi-greenD font-bold">底层自动化开发</strong>能力。</p>
+                        <p>从节点流搭建、脚本策划到动态分镜预演，全面渗透大模型生产链条。</p>
+                        <p>用理性的代码与工具，讲述有温度的影像故事。</p>
+                    </div>
+
+                    <!-- 底部：统一融合的联系方式 Dock (取代三个笨重的按钮) -->
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-3 text-[12px] font-mono text-morandi-text bg-white/50 backdrop-blur-md px-5 py-3 rounded-xl border border-white/80 shadow-[0_4px_15px_rgba(0,0,0,0.02)] w-fit mt-auto">
+                        <!-- Email -->
+                        <a href="mailto:anwenvideo@gmail.com" class="hover:text-morandi-orangeD transition-colors flex items-center group">
+                            <span class="font-bold text-morandi-orangeD mr-2 text-[13px]">E.</span> anwenvideo@gmail.com
+                        </a>
+                        <!-- 优雅的竖线分割 -->
+                        <span class="hidden sm:block w-px h-3 bg-morandi-light/30"></span>
+                        
+                        <!-- WeChat -->
+                        <span class="hover:text-morandi-greenD transition-colors flex items-center group cursor-pointer">
+                            <span class="font-bold text-morandi-greenD mr-2 text-[13px]">W.</span> abouttime_ylf
+                        </span>
+                        <span class="hidden sm:block w-px h-3 bg-morandi-light/30"></span>
+                        
+                        <!-- Phone -->
+                        <a href="tel:17805423550" class="hover:text-morandi-text transition-colors flex items-center group">
+                            <span class="font-bold text-morandi-text mr-2 text-[13px]">T.</span> 17805423550
+                        </a>
+                    </div>
+                    
+                </div>
+            </header>
+
+            <!-- ====== 核心技能 (点击展开详情) ====== -->
+            <section class="mb-20" id="skills">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-xs font-mono text-morandi-light tracking-[0.2em] uppercase flex items-center">
+                        <span class="w-8 h-px bg-morandi-light/50 mr-4"></span> Core Competencies
+                    </h2>
+                    <span class="text-[10px] text-morandi-light font-mono animate-pulse">CLICK CARDS TO EXPAND ↘</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Skill 1 -->
+                    <div class="bento-card p-8 group" onclick="openSkillModal('directing')">
+                        <div class="w-12 h-12 bg-morandi-text text-white rounded-2xl flex items-center justify-center mb-6 text-xl shadow-md transition-transform group-hover:scale-110">🎬</div>
+                        <h3 class="text-[17px] font-bold text-morandi-text mb-3 tracking-wide">AI 创意与编导</h3>
+                        <p class="text-[13px] text-morandi-subtext leading-relaxed">热爱影像，独立选题、脚本筹划及分镜预演。</p>
+                    </div>
+                    <!-- Skill 2 -->
+                    <div class="bento-card p-8 group" onclick="openSkillModal('workflow')">
+                        <div class="w-12 h-12 bg-morandi-orange/20 text-morandi-orangeD border border-morandi-orange/30 rounded-2xl flex items-center justify-center mb-6 text-xl transition-transform group-hover:scale-110">🧠</div>
+                        <h3 class="text-[17px] font-bold text-morandi-text mb-3 tracking-wide">大模型内容生产</h3>
+                        <p class="text-[13px] text-morandi-subtext leading-relaxed">精通主流 AI 工具 最早的stable diffusion就开始本地部署生图AI,到后来的comfyui深度使用与学习，到现在画布平台雨后春笋的涌现，全都熟练使用。</p>
+                    </div>
+                    <!-- Skill 3 -->
+                    <div class="bento-card p-8 group" onclick="openSkillModal('dev')">
+                        <div class="w-12 h-12 bg-morandi-green/20 text-morandi-greenD border border-morandi-green/30 rounded-2xl flex items-center justify-center mb-6 text-xl transition-transform group-hover:scale-110">💻</div>
+                        <h3 class="text-[17px] font-bold text-morandi-text mb-3 tracking-wide">代码研发开发</h3>
+                        <p class="text-[13px] text-morandi-subtext leading-relaxed">编写 Python 接入大模型 API，搭建专属自动化工作流，适应多项目并行快节奏。尝试了很多AI开发工具给自己用，熟悉整个AI写代码的流程。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ====== 传统实拍与工作履历 ====== -->
+            <section class="mb-20" id="experience">
+                <h2 class="text-xs font-mono text-morandi-light tracking-[0.2em] uppercase mb-8 flex items-center">
+                    <span class="w-8 h-px bg-morandi-light/50 mr-4"></span> Professional Experience
+                </h2>
+                
+                <!-- 时间轴设计 -->
+                <div class="ml-2 border-l border-morandi-light/30 pl-8 space-y-10 relative">
+                    <!-- 履历 1 -->
+                    <div class="relative group">
+                        <div class="absolute -left-[37px] top-1.5 w-3 h-3 rounded-full bg-morandi-bg border-2 border-morandi-orangeD group-hover:bg-morandi-orangeD transition-colors duration-300"></div>
+                        <h3 class="text-[17px] font-bold text-morandi-text flex items-center flex-wrap gap-3">
+                            浙江清清美家居用品有限公司
+                            <span class="text-[12px] font-mono border border-morandi-light/30 text-morandi-subtext px-2 py-0.5 rounded-md">2021 - 至今</span>
+                        </h3>
+                        <p class="text-[13px] font-bold text-morandi-greenD mt-1 mb-2">摄影师 / 摄像师</p>
+                        <p class="text-[13px] text-morandi-subtext leading-relaxed">负责公司所有产品照片及视频拍摄与后期制作。通过长期的实拍历练，积累了扎实的灯光布景、摄影机调校及镜头语言表达功底，为 AI 视频创作提供了坚实的传统视听审美支撑。</p>
+                    </div>
+
+                    <!-- 履历 2 -->
+                    <div class="relative group">
+                        <div class="absolute -left-[37px] top-1.5 w-3 h-3 rounded-full bg-morandi-bg border-2 border-morandi-light group-hover:border-morandi-greenD transition-colors duration-300"></div>
+                        <h3 class="text-[17px] font-bold text-morandi-text flex items-center flex-wrap gap-3">
+                            趋势传媒
+                            <span class="text-[12px] font-mono border border-morandi-light/30 text-morandi-subtext px-2 py-0.5 rounded-md">2020 - 2021</span>
+                        </h3>
+                        <p class="text-[13px] font-bold text-morandi-subtext mt-1 mb-2">摄像 / 后期编导</p>
+                        <p class="text-[13px] text-morandi-subtext leading-relaxed">深度参与多项大型企事业单位政企项目，包括贫困村宣传片、警示教育片、大学宣传片等拍摄与后期工作。熟悉正规商业宣传片的制片流程与视听规制。</p>
+                    </div>
+
+                    <!-- 履历 3 -->
+                    <div class="relative group">
+                        <div class="absolute -left-[37px] top-1.5 w-3 h-3 rounded-full bg-morandi-bg border-2 border-morandi-light group-hover:border-morandi-text transition-colors duration-300"></div>
+                        <h3 class="text-[17px] font-bold text-morandi-text flex items-center flex-wrap gap-3">
+                            华途文化传媒有限公司
+                            <span class="text-[12px] font-mono border border-morandi-light/30 text-morandi-subtext px-2 py-0.5 rounded-md">2018 - 2019</span>
+                        </h3>
+                        <p class="text-[13px] font-bold text-morandi-subtext mt-1 mb-2">视频剪辑 / 摄像</p>
+                        <p class="text-[13px] text-morandi-subtext leading-relaxed">以剪辑师身份入行，培养了敏锐的视频节奏感。后续转向前端拍摄，负责大型活动、会议、婚礼等现场记录拍摄，具备极强的现场应变与抓拍能力。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ====== 作品集 ====== -->
+            <section class="flex-1" id="works">
+                <h2 class="text-xs font-mono text-morandi-light tracking-[0.2em] uppercase mb-8 flex items-center">
+                    <span class="w-8 h-px bg-morandi-light/50 mr-4"></span> AIGC Project Experiences
+                </h2>
+
+                <div class="flex flex-col space-y-8">
+                    <!-- Project 1 -->
+                    <div class="bento-card flex flex-col md:flex-row h-auto md:h-60 group" onclick="playFullVideo('https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/%E8%85%95%E8%A1%A8-13s.mp4', 'AICG：腕表TVC短片')">
+                        <div class="w-full md:w-[45%] h-56 md:h-full relative overflow-hidden bg-black">
+                            <video src="https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/%E8%85%95%E8%A1%A8-3s.mp4" autoplay loop muted playsinline class="work-cover opacity-80 group-hover:opacity-100"></video>
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-transparent transition duration-500">
+                                <div class="play-btn w-16 h-16 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 ml-1 text-morandi-text" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-[55%] p-8 md:p-12 flex flex-col justify-center relative">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-2xl font-serif font-bold text-morandi-text group-hover:text-morandi-orangeD transition-colors">AIGC 腕表 TVC 短片</h3>
+                                <span class="text-[10px] font-mono border border-morandi-text/20 text-morandi-text px-3 py-1 rounded-full bg-morandi-text/5">AIGC 短片</span>
+                            </div>
+                            <p class="text-[11px] text-morandi-light font-mono mb-5 tracking-wide">编导策划 | Workflow | AI 一键完成</p>
+                            <p class="text-[14px] text-morandi-subtext leading-relaxed">
+                                独立完成前期创意与分镜脚本。利用宫格分镜+提示词的方式，大幅度提升 AI 视频生成的准确率与画面质感。 
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Project 2 -->
+                    <div class="bento-card flex flex-col md:flex-row h-auto md:h-60 group" onclick="playFullVideo('https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/%E5%8F%A3%E7%BA%A2-12s.mp4', 'AICG:口红TVC短片')">
+                        <div class="w-full md:w-[45%] h-56 md:h-full relative overflow-hidden bg-black">
+                            <video src="https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/%E5%8F%A3%E7%BA%A2-3s.mp4" autoplay loop muted playsinline class="work-cover opacity-80 group-hover:opacity-100"></video>
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-transparent transition duration-500">
+                                <div class="play-btn w-16 h-16 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 ml-1 text-morandi-text" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-[55%] p-8 md:p-12 flex flex-col justify-center relative">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-2xl font-serif font-bold text-morandi-text group-hover:text-morandi-greenD transition-colors">AIGC 视觉大片</h3>
+                                <span class="text-[10px] font-mono border border-morandi-green/40 text-morandi-greenD px-3 py-1 rounded-full bg-morandi-green/10">AI 视频生成大模型实战</span>
+                            </div>
+                            <p class="text-[11px] text-morandi-light font-mono mb-5 tracking-wide">AI一致性 | CPT image2 视觉预演</p>
+                            <p class="text-[14px] text-morandi-subtext leading-relaxed">
+                                深度驾驭主流视频大模型（如 seedance2.0 等），擅长通过精准的 Prompt 和控制参数，在模型能力波动时依然稳定输出高一致性、高质量的视觉画面。利用 AI 图像模型进行前期视觉预演，极大提升创作效率。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Project 3 -->
+                    <div class="bento-card flex flex-col md:flex-row h-auto md:h-60 group" onclick="playFullVideo('https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/AI%E5%88%B6%E4%BD%9CMV.mp4', 'AICG:音乐MV')">
+                        <div class="w-full md:w-[45%] h-56 md:h-full relative overflow-hidden bg-black">
+                            <video src="https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/MV-3S.mp4" autoplay loop muted playsinline class="work-cover opacity-80 group-hover:opacity-100"></video>
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-transparent transition duration-500">
+                                <div class="play-btn w-16 h-16 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 ml-1 text-morandi-text" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-[55%] p-8 md:p-12 flex flex-col justify-center relative">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-2xl font-serif font-bold text-morandi-text group-hover:text-morandi-greenD transition-colors">AIGC 音乐 MV</h3>
+                                <span class="text-[10px] font-mono border border-morandi-green/40 text-morandi-greenD px-3 py-1 rounded-full bg-morandi-green/10">AI音乐</span>
+                            </div>
+                            <p class="text-[11px] text-morandi-light font-mono mb-5 tracking-wide">AI音乐 | AI 音乐 MV</p>
+                            <p class="text-[14px] text-morandi-subtext leading-relaxed">
+                                独立完成长达 4 分钟的 AI 音乐 MV 全链路制作。不仅熟练运用 Suno 及本地音频模型从零创作定制化音乐；更保持了 AI 长视频生成的“视觉一致性”痛点，实现了超长画面的高质量连贯与精准的剪辑情绪点。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ====== 底部 Footer ====== -->
+    <footer class="w-full pb-16 pt-8 flex flex-col items-center justify-center z-10 relative">
+        <div class="w-16 h-px bg-morandi-light/30 mb-8"></div>
+        <p class="font-serif text-morandi-text/90 text-[15px] mb-3 tracking-widest">" 保持对新技术的好奇，用工具重塑影像表达 "</p>
+        <p class="font-mono text-[10px] tracking-[0.2em] text-morandi-light/70 uppercase">
+            Designed for Mediastorm © 2026
+        </p>
+    </footer>
+
+    <!-- ==========================================
+         弹窗区域 (沉浸式深色玻璃态)
+    =========================================== -->
+    
+    <!-- 1. 全屏视频播放器 Modal -->
+    <div id="video-modal" class="fixed inset-0 z-[100] hidden bg-morandi-dark/95 backdrop-blur-2xl flex-col items-center justify-center opacity-0 transition-all duration-500">
+        <div class="w-full max-w-6xl px-6 flex justify-between items-center mb-8">
+            <div class="text-morandi-orange font-mono text-xs tracking-widest flex items-center">
+                <span class="w-2 h-2 rounded-full bg-morandi-orange animate-pulse mr-3"></span> NOW PLAYING
+            </div>
+            <button onclick="closeVideoModal()" class="text-white/60 hover:text-white font-mono text-xs tracking-[0.2em] transition-colors flex items-center group">
+                CLOSE <span class="ml-2 bg-white/10 px-2 py-1 rounded group-hover:bg-white/20">ESC</span>
+            </button>
+        </div>
+        <div class="w-full max-w-6xl px-6 aspect-video">
+            <video id="full-video-player" class="w-full h-full bg-black rounded-2xl shadow-2xl ring-1 ring-white/10" controls preload="none">
+                <source src="" type="video/mp4">
+            </video>
+        </div>
+    </div>
+
+    <!-- 2. 沉浸式图文/视频技能展厅 Modal -->
+    <div id="skill-modal" class="fixed inset-0 z-[100] hidden bg-morandi-text/95 backdrop-blur-xl flex-col items-center justify-center opacity-0 transition-all duration-500">
+        <!-- 顶部控制栏 -->
+        <div class="absolute top-8 w-full max-w-6xl px-6 flex justify-between items-center z-20">
+            <div class="text-morandi-green font-mono text-xs tracking-widest flex items-center">
+                <span class="w-2 h-2 rounded-full bg-morandi-green animate-pulse mr-3"></span> SKILL DETAILS
+            </div>
+            <button onclick="closeSkillModal()" class="text-white/60 hover:text-white font-mono text-xs tracking-[0.2em] transition-colors flex items-center group">
+                CLOSE <span class="ml-2 bg-white/10 px-2 py-1 rounded group-hover:bg-white/20">ESC</span>
+            </button>
+        </div>
+
+        <!-- 内容面板 -->
+        <div class="w-full max-w-6xl px-6 flex flex-col md:flex-row gap-10 mt-10 max-h-[85vh] overflow-y-auto hide-scroll items-center">
+            <!-- 左侧：视觉展示(自动播放的无声视频/动图) -->
+            <div class="w-full md:w-1/2 rounded-3xl overflow-hidden bg-black relative shadow-2xl ring-1 ring-white/10 aspect-video md:aspect-square flex-shrink-0">
+                <video id="skill-video" src="" autoplay loop muted playsinline class="w-full h-full object-cover opacity-90"></video>
+            </div>
+            
+            <!-- 右侧：详尽技能描述 -->
+            <div class="w-full md:w-1/2 flex flex-col py-6">
+                <h2 id="skill-title" class="text-4xl md:text-5xl font-serif font-bold text-white mb-4"></h2>
+                <div id="skill-tags" class="flex flex-wrap gap-2 mb-8 font-mono text-[10px] tracking-widest text-morandi-orange"></div>
+                
+                <div id="skill-desc" class="space-y-6 text-[15px] leading-relaxed text-white/80 font-medium">
+                    <!-- JS 注入内容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         交互脚本引擎
+    =========================================== -->
+    <script>
+                // --- 技能数据配置库 (完全匹配 JD 要求) ---
+        const skillData = {
+            directing: {
+                title: "AI 创意与编导把控",
+                tags:["选题策划", "分镜预演", "视听审美", "实拍底蕴"],
+                video: "https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/%E8%A7%92%E8%89%B2%E5%8D%A1-5s.mp4", 
+                content: `
+                    <p>作为核心创作者，<strong class="text-white">全面负责创意形式的策划与编导工作</strong>。不盲目崇拜技术，更注重用影像语言讲好故事。</p>
+                    <ul class="list-disc pl-5 space-y-3 mt-4 text-white/70">
+                        <li><strong class="text-white/90">深厚的实拍底蕴：</strong>拥有 6 年以上传统摄像与摄影经验（政企宣传片、电商产品、大型活动等），带着真实的镜头焦段思维与打光布景经验去使用 AI。</li>
+                        <li><strong class="text-white/90">从 0 到 1 的内容把控：</strong>独立完成前期选题、撰写脚本、设计拍摄方案与最终视觉导向。对内容节奏、高级光影语言及情绪把控有极高的要求。</li>
+                        <li><strong class="text-white/90">落地交付能力：</strong>具备良好的沟通协作与推进力，能够适应多项目并行及较快的内容生产节奏。</li>
+                    </ul>
+                `
+            },
+            workflow: {
+                title: "大模型工业化流",
+                tags:["ComfyUI", "GPT image2/seedance2.0", "视频大模型", "视觉设定"],
+                video: "https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/comfyui-3s.mp4", 
+                content: `
+                    <p>熟练运用主流 AIGC 工具深度参与内容生产流程，<strong class="text-white">突破传统创作的成本与物理极限</strong>。</p>
+                    <ul class="list-disc pl-5 space-y-3 mt-4 text-white/70">
+                        <li><strong class="text-white/90">系统化视觉设定：</strong>精通 Midjourney / GPT image2 等工具进行前期美术氛围定调与概念探索。</li>
+                        <li><strong class="text-white/90">精准控制与预演：</strong>从早期的 Stable Diffusion 本地部署，到精通 ComfyUI 复杂节点搭建，精准控制角色一致性与场景一致性，实现低成本高规格的动态分镜预览。</li>
+                        <li><strong class="text-white/90">持续迭代进化：</strong>对新技术形态保持极度好奇，实时跟进主流视频大模型（seedance2.0/Kling/Veo/Grok等）与开源社区趋势，迅速将新工具转化为生产力。</li>
+                    </ul>
+                `
+            },
+            dev: {
+                title: "自动化开发赋能",
+                tags:["Python", "API 底层对接", "ComfyUI 脚本", "效率极客"],
+                video: "https://anwen1987.oss-cn-hangzhou.aliyuncs.com/jinshuii/%E4%BD%BF%E7%94%A8%E6%96%87%E4%BB%B6/%E7%BB%88%E7%AB%AF5s-2.mp4", 
+                content: `
+                    <p>兼具<strong class="text-white">编程实战开发能力</strong>，擅长用底层代码打破工具原生的 UI 限制，彻底解放重复劳动。</p>
+                    <ul class="list-disc pl-5 space-y-3 mt-4 text-white/70">
+                        <li><strong class="text-white/90">API 底层对接与自动化：</strong>熟练编写 Python 脚本对接大模型 API。结合 Cursor / Claude code 等 AI 编程助手，搭建定制化的批量渲染队列（如 ComfyUI 批量生产脚本）。</li>
+                        <li><strong class="text-white/90">专注创意本身：</strong>通过代码构建专属的自动化文件处理工作流，让创作者有更多精力专注于“创意”而非“繁琐的软件操作”。</li>
+                        <li><strong class="text-white/90">技术与艺术的桥梁：</strong>能站在开发者视角优化生成效果，并在跨部门（研发与内容）协作时提供坚实的技术壁垒支持。</li>
+                    </ul>
+                `
+            }
+        };
+
+        // --- 鼠标交互系统 (防抖) ---
+        let globalMouse = { x: -1000, y: -1000 };
+        let a4Mouse = { x: -1000, y: -1000, active: false };
+        let a4Timer;
+        const a4Paper = document.querySelector('.a4-paper');
+
+        window.addEventListener('mousemove', (e) => {
+            globalMouse.x = e.clientX; globalMouse.y = e.clientY;
+            const rect = a4Paper.getBoundingClientRect();
+            if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                a4Mouse.x = e.clientX - rect.left; a4Mouse.y = e.clientY - rect.top;
+                a4Mouse.active = true;
+                clearTimeout(a4Timer);
+                a4Timer = setTimeout(() => { a4Mouse.active = false; }, 200);
+            } else {
+                a4Mouse.active = false;
+            }
+        });
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout); timeout = setTimeout(() => func(...args), wait);
+            };
+        }
+
+                // --- 引擎 1：环境微粒场 (全局) 优化视觉可见度 ---
+        const bgCanvas = document.getElementById('global-bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bgPoints =[];
+
+        function initBgCanvas() {
+            bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
+            bgPoints =[];
+            // 粒子数量适中，保证连线清晰不杂乱
+            const pointCount = window.innerWidth > 768 ? 90 : 45;
+            for(let i=0; i<pointCount; i++) {
+                bgPoints.push({
+                    x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height,
+                    vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+                    baseVx: (Math.random() - 0.5) * 0.4, baseVy: (Math.random() - 0.5) * 0.4
+                });
+            }
+        }
+        window.addEventListener('resize', debounce(initBgCanvas, 200));
+        initBgCanvas();
+
+        function renderBg() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            for(let i=0; i<bgPoints.length; i++) {
+                let p = bgPoints[i];
+                let dx = p.x - globalMouse.x; let dy = p.y - globalMouse.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                
+                // 鼠标轻微排斥，保留互动感
+                if (dist < 150) {
+                    let force = (150 - dist) / 150;
+                    p.vx += (dx / dist) * force * 0.8; p.vy += (dy / dist) * force * 0.8;
+                }
+                
+                p.vx = p.vx * 0.95 + p.baseVx * 0.05; p.vy = p.vy * 0.95 + p.baseVy * 0.05;
+                p.x += p.vx; p.y += p.vy;
+                
+                if (p.x < 0 || p.x > bgCanvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > bgCanvas.height) p.vy *= -1;
+                
+                // 【修改点】：放大粒子体积 (2.0)，加深颜色 (莫兰迪深绿)
+                bgCtx.fillStyle = "rgba(92, 122, 106, 0.45)";
+                bgCtx.beginPath(); bgCtx.arc(p.x, p.y, 2.0, 0, Math.PI * 2); bgCtx.fill();
+                
+                // 【修改点】：增加连线距离(160)，加深连线颜色与粗细，让网格感更强
+                for(let j=i+1; j<bgPoints.length; j++) {
+                    let p2 = bgPoints[j];
+                    let dist2 = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    if (dist2 < 160) {
+                        bgCtx.strokeStyle = `rgba(92, 122, 106, ${0.25 * (1 - dist2/160)})`;
+                        bgCtx.lineWidth = 1.2; 
+                        bgCtx.beginPath();
+                        bgCtx.moveTo(p.x, p.y); bgCtx.lineTo(p2.x, p2.y); bgCtx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(renderBg);
+        }
+        renderBg();
+
+        // --- 引擎 2：A4纸密码流 (去扭曲、去闪烁、含蓄显影) ---
+        const wfCanvas = document.getElementById('waterfall-canvas');
+        const wfCtx = wfCanvas.getContext('2d');
+        let wfWidth, wfHeight, wfCols = 0, wfDrops =[];
+        const fontSize = 16;
+        const chars = "AIGC10DEVVISIONSTORYDIRECTOR01";
+        const secretMsg = "你好陈先生";
+
+        function initWaterfall() {
+            const rect = a4Paper.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            wfCanvas.width = rect.width * dpr; wfCanvas.height = rect.height * dpr;
+            wfCtx.scale(dpr, dpr);
+            wfWidth = rect.width; wfHeight = rect.height;
+            wfCols = Math.floor(wfWidth / fontSize) + 1;
+            wfDrops =[];
+            for (let i = 0; i < wfCols; i++) wfDrops[i] = Math.random() * -(wfHeight / fontSize);
+        }
+        window.addEventListener('resize', debounce(initWaterfall, 200));
+        setTimeout(initWaterfall, 100);
+
+        function renderWaterfall() {
+            wfCtx.clearRect(0, 0, wfWidth, wfHeight);
+            wfCtx.font = `bold ${fontSize}px 'Fira Code', 'PingFang SC', monospace`;
+            wfCtx.textAlign = "center"; wfCtx.textBaseline = "middle";
+
+            for (let i = 0; i < wfCols; i++) {
+                let headY = Math.floor(wfDrops[i]);
+                for (let j = 0; j < 12; j++) {
+                    let yPos = headY - j;
+                    if (yPos < 0) continue;
+
+                    let baseX = i * fontSize + fontSize / 2;
+                    let baseY = yPos * fontSize + fontSize / 2;
+                    
+                    // 【修改点】：彻底去掉 drawX / drawY 的扭曲偏移，字符笔直下落
+                    let drawX = baseX, drawY = baseY; 
+
+                    let dx = a4Mouse.x - baseX, dy = a4Mouse.y - baseY;
+                    let distToMouse = Math.sqrt(dx * dx + dy * dy);
+
+                    let alpha = (1 - j / 12) * 0.25; 
+                    let text = chars[Math.floor(Math.random() * chars.length)];
+                    let color = `rgba(184, 111, 82, ${alpha})`; // 默认橘色流
+
+                    // 【修改点】：范围缩小至 65px (约3-4个字符宽度)，含蓄且稳定
+                    if (a4Mouse.active && distToMouse < 65) {
+                        // 稳定显示对应的密码字，不乱闪
+                        text = secretMsg[(i + yPos) % secretMsg.length];
+                        // 越靠近鼠标中心，字越亮，柔和过渡
+                        let boost = (65 - distToMouse) / 65; 
+                        color = `rgba(92, 122, 106, ${alpha + boost * 0.7})`; 
+                    } else if (Math.random() < 0.001) {
+                        // 背景中极低概率的隐藏字，不刺眼
+                        text = secretMsg[(i + yPos) % secretMsg.length];
+                    }
+
+                    wfCtx.fillStyle = color;
+                    wfCtx.fillText(text, drawX, drawY);
+                }
+                
+                // 【修改点】：稍微调慢字符下落的速度，让视觉更从容 (从 0.2 降到 0.15)
+                wfDrops[i] += 0.15; 
+                if (wfDrops[i] * fontSize > wfHeight && Math.random() > 0.95) wfDrops[i] = 0;
+            }
+            requestAnimationFrame(renderWaterfall);
+        }
+        renderWaterfall();
+
+        // --- UI 弹窗管理逻辑 ---
+        
+        // 1. 作品视频播放器
+        const videoModal = document.getElementById('video-modal');
+        const fullVideoPlayer = document.getElementById('full-video-player');
+
+        function playFullVideo(src, title) {
+            fullVideoPlayer.src = src;
+            videoModal.classList.remove('hidden'); videoModal.classList.add('flex');
+            setTimeout(() => videoModal.classList.remove('opacity-0'), 10);
+            fullVideoPlayer.play();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeVideoModal() {
+            videoModal.classList.add('opacity-0');
+            setTimeout(() => {
+                videoModal.classList.add('hidden'); videoModal.classList.remove('flex');
+                fullVideoPlayer.pause(); fullVideoPlayer.src = '';
+                document.body.style.overflow = 'auto';
+            }, 500);
+        }
+
+        // 2. 技能详情图文框
+        const skillModal = document.getElementById('skill-modal');
+        const skillVideo = document.getElementById('skill-video');
+        const skillTitle = document.getElementById('skill-title');
+        const skillTags = document.getElementById('skill-tags');
+        const skillDesc = document.getElementById('skill-desc');
+
+        function openSkillModal(key) {
+            const data = skillData[key];
+            if(!data) return;
+
+            skillTitle.innerText = data.title;
+            skillVideo.src = data.video;
+            skillDesc.innerHTML = data.content;
+            
+            // 生成标签
+            skillTags.innerHTML = data.tags.map(t => 
+                `<span class="px-3 py-1 border border-morandi-orange/30 bg-morandi-orange/10 rounded">${t}</span>`
+            ).join('');
+
+            skillModal.classList.remove('hidden'); skillModal.classList.add('flex');
+            setTimeout(() => skillModal.classList.remove('opacity-0'), 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSkillModal() {
+            skillModal.classList.add('opacity-0');
+            setTimeout(() => {
+                skillModal.classList.add('hidden'); skillModal.classList.remove('flex');
+                skillVideo.src = '';
+                document.body.style.overflow = 'auto';
+            }, 500);
+        }
+
+        // 键盘 ESC 监听
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!videoModal.classList.contains('hidden')) closeVideoModal();
+                if (!skillModal.classList.contains('hidden')) closeSkillModal();
+            }
+        });
+    </script>
+</body>
+</html>
